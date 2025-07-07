@@ -1,0 +1,797 @@
+{
+  "name": "Leads Generation n8n- AY",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "apollo-lead-scraper",
+        "formTitle": "Apollo Lead Scraper",
+        "formDescription": "Enter one organization or domain per line and the maximum leads per company",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Organizations / Domains (one per line)",
+              "fieldType": "textarea",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Maximum Leads Per Organization",
+              "fieldType": "number",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "75f1b5f0-12d9-4082-b156-7f93aa0a7c51",
+      "name": "Lead Form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2,
+      "position": [
+        -2480,
+        120
+      ],
+      "webhookId": "apollo-lead-scraper"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    datasetId: $input.first().json.data.defaultDatasetId\n  }\n}];"
+      },
+      "id": "d4b69950-917d-4a38-a3fd-f0c158eaa7f2",
+      "name": "Get Dataset ID",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1500,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "Datasets",
+        "operation": "Get items",
+        "datasetId": "={{ $json.datasetId }}",
+        "offset": "={{ 0 }}",
+        "limit": "={{ $('Lead Form').item.json['Maximum Leads Per Organization'] }}"
+      },
+      "id": "4f3be13e-b5f4-4b92-ae18-a9bbd64cd9d6",
+      "name": "Dataset → Get Items",
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        -1240,
+        120
+      ],
+      "credentials": {
+        "apifyApi": {
+          "id": "PNDUpteR7dVTEHr5",
+          "name": "Apify account 5"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Transform the Apollo data to Google Sheets format\nconst leads = $input.all();\n\nconst transformedLeads = leads.map(item => {\n  const data = item.json;\n  \n  return {\n    json: {\n      'Full Name': data.name || `${data.first_name || ''} ${data.last_name || ''}`.trim(),\n      'Role / Job Title': data.title || data.headline || '',\n      'Email': data.email || '',\n      'Phone': data.phone || data.phone_number || '',\n      'LinkedIn URL': data.linkedin_url || '',\n      'Company': data.organization_name || '',\n      'Photo URL': data.photo_url || '',\n      'City': data.city || '',\n      'State': data.state || '',\n      'Country': data.country || '',\n      'Scraped Date': new Date().toISOString().split('T')[0]\n    }\n  };\n});\n\nreturn transformedLeads;"
+      },
+      "id": "f266e78e-a2bb-43a0-9861-4c1783a5eb5b",
+      "name": "Transform Leads Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1040,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet1",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Role / Job Title",
+              "displayName": "Role / Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "LinkedIn URL",
+              "displayName": "LinkedIn URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Photo URL",
+              "displayName": "Photo URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "City",
+              "displayName": "City",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "State",
+              "displayName": "State",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Country",
+              "displayName": "Country",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Scraped Date",
+              "displayName": "Scraped Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "9fee8a27-36a0-4ac5-bea2-30aad3e5a058",
+      "name": "Google Sheets - Store Leads",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -800,
+        120
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "OCGg4fftQc0zIW9p",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filter out items without emails and prepare for Hunter validation\nconst leads = $input.all();\n\nconst leadsWithEmails = leads.filter(item => {\n  const email = item.json.Email;\n  return email && email.trim() !== '' && email.includes('@');\n});\n\nreturn leadsWithEmails;"
+      },
+      "id": "26ffb4b5-ca0b-4bed-91c2-fc9312cc0c33",
+      "name": "Filter Leads with Emails",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2220,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "emailVerifier",
+        "email": "={{$json[\"Email\"]}}"
+      },
+      "id": "3b58dd63-d6a8-468e-8f20-68cc81114cc3",
+      "name": "Hunter - Email Verification",
+      "type": "n8n-nodes-base.hunter",
+      "typeVersion": 1,
+      "position": [
+        -2000,
+        400
+      ],
+      "credentials": {
+        "hunterApi": {
+          "id": "MkZuXzerGT0dCP6g",
+          "name": "Hunter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all().map(item => {\n  const data = item.json || {};\n\n  // Use result (not status) to determine deliverability\n  const emailResult = data.result ?? 'unknown';\n  const isValid = emailResult === 'deliverable' || emailResult === 'risky';\n\n  return {\n    json: {\n      ...data,\n      'Email Status': emailResult,\n      'Is Valid': isValid ? 'Valid' : 'Invalid',\n      'Hunter Score': data.score ?? 0,\n      'Hunter Sources': Array.isArray(data.sources) ? data.sources.length : 0\n    }\n  };\n});\n"
+      },
+      "id": "73ca0d81-c963-4baa-833c-301687fabb08",
+      "name": "Combine Lead with Validation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1780,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "condition1",
+              "leftValue": "={{ $json['Is Valid'] }}",
+              "rightValue": "Valid",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c691ed5c-8e42-4aaa-842f-4bfb74167feb",
+      "name": "IF Valid Email",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -1560,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4.1-MINI"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=You are a B2B sales expert. Write a concise and friendly cold email to {{ $('Filter Leads with Emails').item.json['Full Name'] }}, who is the {{ $('Filter Leads with Emails').item.json['Role / Job Title'] }} at {{ $('Filter Leads with Emails').item.json.Company }}.\n\nThe email should:\n- Grab attention in the subject line\n- Be personalized using their name, role, and company\n- Highlight a solution we offer that helps with {{ $('Filter Leads with Emails').item.json['Role / Job Title'] }} pain points\n- Include a soft CTA (like setting up a quick call)\n\nFormat:\nSUBJECT: [Your catchy subject]\nBODY: [The full email body]\n\nKeep the tone helpful and professional. Use short paragraphs.\nThere shouldnot be any placeholder like [your name] in the response, as it automated email. "
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0f6b470c-51df-42ed-847f-4a374afcd729",
+      "name": "ChatGPT - Generate Cold Email",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [
+        -1320,
+        400
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "ziT04WNApfq1YGQx",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1) Grab all lead‑items from the validation step\nconst leads = $items('Combine Lead with Validation');\n\n// 2) Grab all email‑items from the ChatGPT step\nconst emails = $items('ChatGPT - Generate Cold Email');\n\n// 3) Use the smaller of the two lengths to avoid errors\nconst outputLength = Math.min(leads.length, emails.length);\n\n// 4) Build the output array\nreturn Array.from({ length: outputLength }, (_, idx) => {\n  const lead = leads[idx].json;\n  const emailJson = emails[idx].json;\n\n  const fullEmail =\n    emailJson.message?.content\n    || emailJson.response\n    || emailJson.text\n    || '';\n\n  const [rawSubj = '', rawBody = ''] = fullEmail.split(/BODY:/i);\n  const subject = rawSubj.replace(/SUBJECT:/i, '').trim();\n  const body    = rawBody.trim();\n\n  return {\n    json: {\n      ...lead,\n      'Email Subject': subject,\n      'Email Body': body,\n      'Generated Date': new Date().toISOString().slice(0, 10),\n    }\n  };\n});\n"
+      },
+      "id": "2ef329ee-e987-4283-b55f-3bec7c5d42f0",
+      "name": "Combine Lead with Email",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -940,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Sheet2",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Full Name",
+              "displayName": "Full Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email Subject",
+              "displayName": "Email Subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Email Body",
+              "displayName": "Email Body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "0cc21298-f866-4e3b-8c73-fc4089616930",
+      "name": "Google Sheets - Store Validated Emails",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [
+        -1620,
+        680
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "OCGg4fftQc0zIW9p",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f9ec9c71-acf9-41f4-91f4-61aace0acf7f",
+              "name": "Full Name",
+              "value": "={{ $('Filter Leads with Emails').item.json['Full Name'] }}",
+              "type": "string"
+            },
+            {
+              "id": "9ce8e318-0489-484a-8ff3-ef514c6483d2",
+              "name": "Email",
+              "value": "={{ $json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "02323d10-6d61-428f-a0bc-d7ee154e3a47",
+              "name": "Email Subject",
+              "value": "={{ $json['Email Subject'] }}",
+              "type": "string"
+            },
+            {
+              "id": "923577ff-699e-4999-b9e0-6052ace42093",
+              "name": "Email Body",
+              "value": "={{ $json['Email Body'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1980,
+        680
+      ],
+      "id": "e9ab042d-9b1a-4665-bfb7-8a44cedd8ca8",
+      "name": "Filtering Required Feilds"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json['Email Subject'] }}",
+        "message": "={{ $json['Email Body'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -620,
+        680
+      ],
+      "id": "588a6960-7747-42a2-ae91-2e05ca458590",
+      "name": "Create a draft",
+      "webhookId": "a4db0194-11b1-4aaa-b91a-5c6b58c28d1b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QGL2Df23BtG0H6nF",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Filtering Required Feilds').item.json.Email }}",
+        "subject": "={{ $('Filtering Required Feilds').item.json['Email Subject'] }}",
+        "emailType": "text",
+        "message": "={{ $('Filtering Required Feilds').item.json['Email Body'] }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -1360,
+        680
+      ],
+      "id": "3c576bb6-404c-46fb-bd4b-b673ec5bdf88",
+      "name": "Send a message",
+      "webhookId": "607c2782-d296-4fcd-b36c-848b9d757b6a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QGL2Df23BtG0H6nF",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Debug exactly what's being sent to Apify\nconsole.log('🔍 === APIFY INPUT DEBUG ===');\nconsole.log('Input data:', JSON.stringify($json, null, 2));\n\n// Build the exact same config that will be sent to Apify\nconst actualConfig = {\n  \"startUrls\": [\n    {\n      \"url\": $json.searchUrl\n    }\n  ],\n  \"maxItems\": $json.maxLeads,\n  \"proxyConfiguration\": {\n    \"useApifyProxy\": true\n  },\n  \"maxRequestsPerCrawl\": $json.maxLeads,\n  \"maxConcurrency\": 1\n};\n\nconsole.log('📦 Config being sent to Apify:');\nconsole.log(JSON.stringify(actualConfig, null, 2));\n\n// Specific URL check\nconsole.log('🌐 URL Details:');\nconsole.log('- URL:', $json.searchUrl);\nconsole.log('- URL Type:', typeof $json.searchUrl);\nconsole.log('- URL Length:', $json.searchUrl?.length || 'undefined');\nconsole.log('- Contains apollo.io:', $json.searchUrl?.includes('apollo.io'));\n\n// Check if this looks like your expected URL\nif ($json.searchUrl?.includes('organizationDomains')) {\n  console.log('✅ Looks like a DOMAIN search');\n} else if ($json.searchUrl?.includes('qOrganizationName')) {\n  console.log('✅ Looks like a COMPANY NAME search');\n} else {\n  console.log('❌ URL format not recognized!');\n}\n\nreturn [{\n  json: {\n    ...$json,\n    debugInfo: {\n      configSent: actualConfig,\n      urlLength: $json.searchUrl?.length,\n      urlType: $json.searchUrl?.includes('organizationDomains') ? 'domain' : 'company'\n    }\n  }\n}];"
+      },
+      "id": "526327a3-9649-4c5a-ae40-97ac1f4372c7",
+      "name": "Prepare Items1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2200,
+        120
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.apollo.io/api/v1/organizations/enrich?domain= {{ $json['Organizations / Domains (one per line)'] }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "x-api-key",
+              "value": ""
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1980,
+        120
+      ],
+      "id": "a53ef225-72d6-4269-9d17-2afebadcedd3",
+      "name": "ORG ID extractor"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/jljBwyyQakqrL1wae/runs?apify_api_here",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "apifyApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"cleanOutput\": false,\n  \"totalRecords\": 500,\n\n    \"url\": \"https://app.apollo.io/#/people?page=1&sortAscending=false&sortByField=recommendations_score&organizationIds[]={{ $json.organization.id }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -1740,
+        120
+      ],
+      "id": "d9bb0598-ed0f-458e-9192-9e6e84eaad8a",
+      "name": "Data Fetcher From Apollo",
+      "credentials": {
+        "apifyApi": {
+          "id": "PNDUpteR7dVTEHr5",
+          "name": "Apify account 5"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Lead Form": {
+      "main": [
+        [
+          {
+            "node": "Prepare Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Dataset ID": {
+      "main": [
+        [
+          {
+            "node": "Dataset → Get Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dataset → Get Items": {
+      "main": [
+        [
+          {
+            "node": "Transform Leads Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform Leads Data": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets - Store Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Leads with Emails": {
+      "main": [
+        [
+          {
+            "node": "Hunter - Email Verification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hunter - Email Verification": {
+      "main": [
+        [
+          {
+            "node": "Combine Lead with Validation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Lead with Validation": {
+      "main": [
+        [
+          {
+            "node": "IF Valid Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Valid Email": {
+      "main": [
+        [
+          {
+            "node": "ChatGPT - Generate Cold Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ChatGPT - Generate Cold Email": {
+      "main": [
+        [
+          {
+            "node": "Combine Lead with Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combine Lead with Email": {
+      "main": [
+        [
+          {
+            "node": "Filtering Required Feilds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets - Store Validated Emails": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtering Required Feilds": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets - Store Validated Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Sheets - Store Leads": {
+      "main": [
+        [
+          {
+            "node": "Filter Leads with Emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a draft": {
+      "main": [
+        []
+      ]
+    },
+    "Prepare Items1": {
+      "main": [
+        [
+          {
+            "node": "ORG ID extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ORG ID extractor": {
+      "main": [
+        [
+          {
+            "node": "Data Fetcher From Apollo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "Data Fetcher From Apollo": {
+      "main": [
+        [
+          {
+            "node": "Get Dataset ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cfe894b2-aff7-4027-bc6b-de354be1e370",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9ced6199316427211e523d09067252d2e5175921a1e93dabd63dd6005328741c"
+  },
+  "id": "sAQFSt0VtWFefi2p",
+  "tags": []
+}
